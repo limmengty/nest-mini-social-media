@@ -1,0 +1,6 @@
+entity: CommentEntity
+items: 
+  comment{1..30}:
+    message: '{{lorem.words(10)}}'
+    byUser: '@user*'    
+    byPost: '@post*'    

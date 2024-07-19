@@ -1,0 +1,57 @@
+version: "2"
+services:
+  nest:
+    build: .
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+      - ./test:/app/test
+      - .env:/app/.env
+      - ./upload:/app/upload
+    # ports:
+    #   - 3000:3000
+    restart: unless-stopped
+    scale: 2
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+    container_name: mini-nest-nginx
+    depends_on:
+      - nest
+    environment:
+      - NGINX_SERVER_NAME=localhost
+      - NEST_HOST_1=mini-social-media-nest-1
+      - NEST_HOST_2=mini-social-media-nest-2
+      - NEST_PORT=3000
+      - NGINX_MAX_BODY=100M
+    ports:
+      - 81:80
+  db:
+    image: postgres:12
+    container_name: mini-nest-db
+    environment:
+      POSTGRES_DB: nest
+      POSTGRES_USER: nest
+      POSTGRES_PASSWORD: nest
+    ports:
+      - 5432:5432
+    volumes:
+      - postgresdata:/var/lib/postgresql
+  redis:
+    image: redis:5
+    container_name: mini-nest-redis
+    ports:
+      - 6379:6379
+  redis-commader:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:mini-nest-redis:6379
+    ports: 
+      - 8082:8081
+    depends_on:
+      - redis
+volumes:
+  postgresdata:
